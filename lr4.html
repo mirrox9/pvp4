@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расчет обоев для квартиры</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1em;
+        }
+
+        section {
+            margin: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="radio"] {
+            margin-left: -730px;
+        }
+		
+		 #profileSection {
+            display: none; /* Скрываем секцию с анкетой изначально */
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Расчет количества обоев для квартиры</h1>
+    </header>
+
+    <section>
+        <h2>Сбор сведений</h2>
+        <form id="wallpaperCalculatorForm">
+            <label for="roomCount">Количество комнат (от 1 до 4):</label>
+            <input type="number" id="roomCount" name="roomCount" min="1" max="4" required>
+
+            <div id="roomDetails"></div>
+
+            <button type="button" onclick="calculateWallpapers()">Получить форму</button>
+			  <button type="button" onclick="anketa()">Получить форму анкеты</button>
+            <button type="button" onclick="calculateTotalWallpapers()">Рассчитать</button>
+			<button type="button" onclick="createInvoice()">Создать бланк</button>
+			<button type="button" onclick="saveToLocalStorage()">Сохранить бланк</button>
+        </form>
+
+        <div id="result"></div>
+    </section>
+	
+	 <section id = 'anketa' style="display:none;">
+        <h2>Анкета</h2>
+        <form id="profileForm">
+            <label for="fullName">ФИО:</label>
+            <input type="text" id="fullName" name="fullName" required>
+
+            <label for="birthYear">Год рождения:</label>
+            <select id="birthYear" name="birthYear" required>
+                <option value="1990">1990</option>
+                <option value="1991">1991</option>
+				 <option value="1921">1992</option>
+				  <option value="1993">1993</option>
+				    <option value="1994">1994</option>
+					 <option value="2002">2002</option>
+            </select>
+
+            <label for="category">Категория:</label>
+            <select id="category" name="category" required>
+                <option value="employee">Служащий</option>
+                <option value="student">Учащийся</option>
+                <option value="entrepreneur">Предприниматель</option>
+                <option value="other">Другое</option>
+            </select>
+
+            <label for="interests">Сфера интересов (выберите несколько):</label>
+            <select id="interests" name="interests" multiple required>
+                <option value="sports">Спорт</option>
+                <option value="music">Музыка</option>
+                <option value="travel">Путешествия</option>
+                <option value="technology">Технологии</option>
+                <option value="books">Книги</option>
+                <option value="art">Искусство</option>
+                <option value="cooking">Готовка</option>
+                <option value="movies">Кино</option>
+                <option value="gaming">Игры</option>
+                <option value="coding">Программирование</option>
+            </select>
+
+            <label for="userPhoto">Загрузка фото пользователя:</label>
+            <input type="file" id="userPhoto" name="userPhoto" accept="image/*" required>
+
+            <button type="button" onclick="submitProfileForm()">Сохранить анкету</button>
+            <button type="button" onclick="loadProfileData()">Загрузить анкету</button>
+        </form>
+    </section>
+
+
+    <script>
+	  function submitProfileForm() {
+            // Собираем данные из полей анкеты
+            var fullName = document.getElementById('fullName').value;
+            var birthYear = document.getElementById('birthYear').value;
+            var category = document.getElementById('category').value;
+            var interests = Array.from(document.getElementById('interests').selectedOptions).map(option => option.value);
+            var userPhoto = document.getElementById('userPhoto').value;
+
+            // Сохраняем данные в localStorage
+            localStorage.setItem('profileData', JSON.stringify({
+                fullName: fullName,
+                birthYear: birthYear,
+                category: category,
+                interests: interests,
+                userPhoto: userPhoto
+            }));
+        }
+
+        function loadProfileData() {
+            // Загружаем данные из localStorage
+            var savedData = localStorage.getItem('profileData');
+            if (savedData) {
+                var profileData = JSON.parse(savedData);
+
+                // Заполняем поля анкеты сохраненными данными
+                document.getElementById('fullName').value = profileData.fullName;
+                document.getElementById('birthYear').value = profileData.birthYear;
+                document.getElementById('category').value = profileData.category;
+
+                // Выбираем сохраненные интересы
+                var interestsSelect = document.getElementById('interests');
+                for (var i = 0; i < interestsSelect.options.length; i++) {
+                    interestsSelect.options[i].selected = profileData.interests.includes(interestsSelect.options[i].value);
+                }
+
+                // Отображаем путь к сохраненному файлу пользователя
+                document.getElementById('userPhoto').value = profileData.userPhoto;
+            }
+        }
+	
+		function anketa() {
+		 var a = document.getElementById('anketa')
+		 a.style.display = 'block'
+
+		}
+	
+        function calculateWallpapers() {
+            var roomCount = document.getElementById('roomCount').value;
+            var roomDetails = document.getElementById('roomDetails');
+            roomDetails.innerHTML = '';
+
+            for (var i = 1; i <= roomCount; i++) {
+                roomDetails.innerHTML += '<h3>Комната ' + i + '</h3>';
+                roomDetails.innerHTML += '<label for="wallSizeRoom' + i + '">Размер стен (кв. м):</label>';
+                roomDetails.innerHTML += '<input type="number" id="wallSizeRoom' + i + '" name="wallSizeRoom' + i + '" step="0.01" required>';
+
+                roomDetails.innerHTML += '<label for="wallpaperTypeRoom' + i + '">Вид обоев:</label>';
+                roomDetails.innerHTML += '<select id="wallpaperTypeRoom' + i + '" name="wallpaperTypeRoom' + i + '" required>' +
+                    '<option value="vinyl">Виниловые</option>' +
+                    '<option value="paper">Бумажные</option>' +
+                    '<option value="non-woven">Флизелиновые</option>' +
+                    '</select>';
+
+                roomDetails.innerHTML += '<label>Размер рулона обоев (кв. м):</label>';
+                roomDetails.innerHTML += '<input type="number" id="rollSizeRoom' + i + '" name="rollSizeRoom' + i + '" step="0.01" required>';
+
+                roomDetails.innerHTML += '<label>Необходимость стыковки рисунка:</label>';
+                roomDetails.innerHTML += '<label for="patternMatchRoom' + i + '_yes">Да</label>' +
+                    '<input type="radio" id="patternMatchRoom' + i + '_yes" name="patternMatchRoom' + i + '" value="yes" required>' +
+                    '<label for="patternMatchRoom' + i + '_no">Нет</label>' +
+                    '<input type="radio" id="patternMatchRoom' + i + '_no" name="patternMatchRoom' + i + '" value="no" required>';
+                roomDetails.innerHTML += '<label for="long' + i + '">Требуемая длина стыковки:</label>';
+                roomDetails.innerHTML += '<input type="number" id="longLen' + i + '" name="longLen' + i + '" step="0.1" required>';
+
+                roomDetails.innerHTML += '<label for="pricePerSquareMeterRoom' + i + '">Цена за квадратный метр обоев (руб.):</label>';
+                roomDetails.innerHTML += '<input type="number" id="pricePerSquareMeterRoom' + i + '" name="pricePerSquareMeterRoom' + i + '" step="0.01" required>';
+
+                roomDetails.innerHTML += '<br>';
+            }
+        }
+
+        function calculateTotalWallpapers() {
+            var roomCount = document.getElementById('roomCount').value;
+            var totalWallpapers = 0;
+
+            for (var i = 1; i <= roomCount; i++) {
+                var wallSize = parseFloat(document.getElementById('wallSizeRoom' + i).value);
+                var rollSize = parseFloat(document.getElementById('rollSizeRoom' + i).value);
+                var patternMatch = document.querySelector('input[name="patternMatchRoom' + i + '"]:checked').value;
+                var longLen = parseFloat(document.getElementById('longLen' + i).value);
+                var pricePerSquareMeter = parseFloat(document.getElementById('pricePerSquareMeterRoom' + i).value);
+
+                var wallpaperArea = wallSize / rollSize;
+
+                if (patternMatch === 'yes') {
+                    wallpaperArea += longLen;
+                }
+
+                var roomTotal = wallpaperArea * pricePerSquareMeter;
+
+                // Добавляем вывод количества обоев для каждой комнаты
+                document.getElementById('result').innerHTML += 'Комната ' + i + ': ' + ' Количество обоев: ' + wallpaperArea.toFixed(2) + ' шт.<br>';
+
+                totalWallpapers += roomTotal;
+            }
+
+            // Добавляем вывод общей стоимости заказа
+            document.getElementById('result').innerHTML += '<br>Общая стоимость обоев для всех комнат: ' + totalWallpapers.toFixed(2) + ' руб.';
+        }
+		
+		//11
+		function calculateForBlank() {
+    var roomCount = document.getElementById('roomCount').value;
+    var totalWallpapers = 0;
+
+    for (var i = 1; i <= roomCount; i++) {
+        var wallSize = parseFloat(document.getElementById('wallSizeRoom' + i).value);
+        var rollSize = parseFloat(document.getElementById('rollSizeRoom' + i).value);
+        var patternMatch = document.querySelector('input[name="patternMatchRoom' + i + '"]:checked').value;
+        var longLen = parseFloat(document.getElementById('longLen' + i).value);
+        var pricePerSquareMeter = parseFloat(document.getElementById('pricePerSquareMeterRoom' + i).value);
+
+        var wallpaperArea = wallSize / rollSize;
+
+        if (patternMatch === 'yes') {
+            wallpaperArea += longLen;
+        }
+
+        var roomTotal = wallpaperArea * pricePerSquareMeter;
+        totalWallpapers += roomTotal;
+    }
+
+    return totalWallpapers;
+}
+		//11
+		
+		function createInvoice() {
+    // Создаем новую вкладку
+    var newTab = window.open();
+
+    // Собираем данные для бланка заказа
+    var roomCount = document.getElementById('roomCount').value;
+    var invoiceContent = '<h2>Бланк заказа</h2>';
+
+    for (var i = 1; i <= roomCount; i++) {
+        var wallSize = parseFloat(document.getElementById('wallSizeRoom' + i).value);
+        var rollSize = parseFloat(document.getElementById('rollSizeRoom' + i).value);
+        var patternMatch = document.querySelector('input[name="patternMatchRoom' + i + '"]:checked').value;
+        var longLen = parseFloat(document.getElementById('longLen' + i).value);
+        var pricePerSquareMeter = parseFloat(document.getElementById('pricePerSquareMeterRoom' + i).value);
+
+        var wallpaperArea = wallSize / rollSize;
+
+        if (patternMatch === 'yes') {
+            wallpaperArea += longLen;
+        }
+
+        invoiceContent += 'Комната ' + i + ': ' + ' Количество обоев: ' + wallpaperArea.toFixed(2) + ' шт.<br>';
+    }
+
+    // Добавляем общую стоимость заказа
+    var totalWallpapers = calculateForBlank();
+    invoiceContent += '<br>Общая стоимость обоев для всех комнат: ' + totalWallpapers.toFixed(2) + ' руб.';
+
+    // Вставляем содержимое бланка заказа в новую вкладку
+    newTab.document.write(invoiceContent);
+}
+
+function saveToLocalStorage() {
+    // Собираем данные для сохранения в локальное хранилище
+    var roomCount = document.getElementById('roomCount').value;
+    var dataToSave = { rooms: [] };
+
+    for (var i = 1; i <= roomCount; i++) {
+        var wallSize = parseFloat(document.getElementById('wallSizeRoom' + i).value);
+        var rollSize = parseFloat(document.getElementById('rollSizeRoom' + i).value);
+        var patternMatch = document.querySelector('input[name="patternMatchRoom' + i + '"]:checked').value;
+        var longLen = parseFloat(document.getElementById('longLen' + i).value);
+        var pricePerSquareMeter = parseFloat(document.getElementById('pricePerSquareMeterRoom' + i).value);
+
+        var wallpaperArea = wallSize / rollSize;
+
+        if (patternMatch === 'yes') {
+            wallpaperArea += longLen;
+        }
+
+        dataToSave.rooms.push({
+            roomNumber: i,
+            wallpaperArea: wallpaperArea.toFixed(2),
+        });
+    }
+
+    // Сохраняем данные в локальное хранилище
+    localStorage.setItem('invoiceData', JSON.stringify(dataToSave));
+}
+    </script>
+
+</body>
+
+</html>
